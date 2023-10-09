@@ -11,7 +11,17 @@ async def get_clients():
         raise("One of WAKEY_USERNAME, WAKEY_PASSWORD, WAKEY_IPLIST environment variables undefined.")
     credential = AuthCredential(username, password)
     iplist = iplist_string.split("|")
-    clients = await asyncio.gather(*[TapoClient.connect(credential,x) for x in iplist])
+
+    # TODO (p-casgrain): Pythonify into nice list comprehension, clients are now created without the "connect" function, but need to be initialized afterwards.
+    clients = []
+    for ip in iplist:
+        clients.append(TapoClient(credential,ip))
+
+    for client in clients:
+        await client.initialize()
+
+    # Not working anymore after commit 1923265 from plugp100 library
+    #clients = await asyncio.gather(*[TapoClient.connect(credential,x) for x in iplist])
     return clients
 
 
