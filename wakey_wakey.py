@@ -3,6 +3,8 @@ from plugp100.api.light_device import LightDevice
 import asyncio
 import os
 
+SUNRISE_DURATION_MIN = 1 # How long the sunrise should last in minutes
+
 async def get_clients():
     username = os.getenv("WAKEY_USERNAME") # "adrianje77@gmail.com"
     password = os.getenv("WAKEY_PASSWORD") # "testing123"
@@ -24,20 +26,23 @@ async def get_clients():
     #clients = await asyncio.gather(*[TapoClient.connect(credential,x) for x in iplist])
     return clients
 
-
 async def main():
     clients = await get_clients()
     lights = [LightDevice(x) for x in clients]
 
-    await asyncio.gather(*[x.off() for x in lights])
+    # First reduce brightness and then set sunrise temperature.
+    await asyncio.gather(*[x.set_brightness(1) for x in lights])
     await asyncio.gather(*[x.set_color_temperature(2500) for x in lights])
     
+    dt = SUNRISE_DURATION_MIN*60//100 # Loop pause time in seconds
+    
     for i in range(100):
+        print(i)
         await asyncio.gather(*[x.set_brightness(i+1) for x in lights])
-        # await asyncio.gather(*[x.set_hue_saturation(hue=((i+1)*45)//100, saturation=100-i) for x in lights])
-        # await asyncio.gather(*[x.t_color_temperature(2500+10*i) for x in lights])
-        await asyncio.sleep(0.05)         
-        
+        #await asyncio.gather(*[x.set_color_temperature(2500+2*i) for x in lights])
+        #await asyncio.gather(*[x.set_hue_saturation(hue=((i+1)*45)//100, saturation=100-i) for x in lights])
+        await asyncio.sleep(dt)
+
     await asyncio.gather(*[x.close() for x in clients])
 
 
