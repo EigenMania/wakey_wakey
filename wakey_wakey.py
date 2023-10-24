@@ -1,9 +1,15 @@
+# Original repository: https://github.com/petretiandrea/plugp100
+# To update: pip install plugp100 --upgrade
 from plugp100.api.tapo_client import TapoClient, AuthCredential
 from plugp100.api.light_device import LightDevice
 import asyncio
 import os
+import sys
 
-SUNRISE_DURATION_MIN = 30 # How long the sunrise should last in minutes
+n = len(sys.argv)
+SUNRISE_DURATION_MIN = 30
+if n == 2:
+    SUNRISE_DURATION_MIN = int(sys.argv[1])
 
 async def get_clients():
     username = os.getenv("WAKEY_USERNAME") # "adrianje77@gmail.com"
@@ -22,9 +28,12 @@ async def get_clients():
     for client in clients:
         await client.initialize()
 
-    # Not working anymore after commit 1923265 from plugp100 library
-    #clients = await asyncio.gather(*[TapoClient.connect(credential,x) for x in iplist])
     return clients
+
+async def sunrise_step(light, brightness, hue, saturation):
+    await light.set_brightness(brightness)
+    await light.set_hue_saturation(hue=hue, saturation=saturation)
+    return
 
 async def main():
     clients = await get_clients()
@@ -40,15 +49,16 @@ async def main():
     for i in range(100):
         cur_brightness = i+1
         cur_hue = int((i+1)*50/100)
-        cur_saturation = 100-int(0.7*i)
+        cur_saturation = 100-int(0.90*i)
         # For debugging...
-        #print("Brightness: ", cur_brightness)
-        #print("Hue       : ", cur_hue)
-        #print("Saturation: ", cur_saturation)
-        #print("")
-        await asyncio.gather(*[x.set_brightness(cur_brightness) for x in lights])
+        print("Brightness: ", cur_brightness)
+        print("Hue       : ", cur_hue)
+        print("Saturation: ", cur_saturation)
+        print("")
+        await asyncio.gather(*[sunrise_step(x, cur_brightness, cur_hue, cur_saturation) for x in lights])
+        #await asyncio.gather(*[x.set_brightness(cur_brightness) for x in lights])
         #await asyncio.gather(*[x.set_color_temperature(2500+i) for x in lights])
-        await asyncio.gather(*[x.set_hue_saturation(hue=cur_hue, saturation=cur_saturation) for x in lights])
+        #await asyncio.gather(*[x.set_hue_saturation(hue=cur_hue, saturation=cur_saturation) for x in lights])
         await asyncio.sleep(dt)
 
     await asyncio.gather(*[x.close() for x in clients])
