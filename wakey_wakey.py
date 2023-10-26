@@ -12,9 +12,9 @@ if n == 2:
     SUNRISE_DURATION_MIN = int(sys.argv[1])
 
 async def get_clients():
-    username = os.getenv("WAKEY_USERNAME") # "adrianje77@gmail.com"
-    password = os.getenv("WAKEY_PASSWORD") # "testing123"
-    iplist_string = os.getenv("WAKEY_IPLIST") # "192.168.1.47|192.168.1.48"
+    username = os.getenv("WAKEY_USERNAME") # Your Tapo email
+    password = os.getenv("WAKEY_PASSWORD") # Your Tapo password
+    iplist_string = os.getenv("WAKEY_IPLIST") # Your Tapo L530 IP addresses, e.g. "192.168.1.47|192.168.1.48"
     if any( [x==None for x in [username,password,iplist_string]] ):
         raise("One of WAKEY_USERNAME, WAKEY_PASSWORD, WAKEY_IPLIST environment variables undefined.")
     credential = AuthCredential(username, password)
